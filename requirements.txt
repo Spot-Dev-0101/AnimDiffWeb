@@ -1,0 +1,11 @@
+Flask
+Flask-SocketIO
+diffusers
+huggingface_hub
+safetensors
+Pillow
+psutil
+numpy
+opencv-python
+transformers
+ffmpeg-python

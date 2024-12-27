@@ -1,0 +1,18 @@
+{
+    "defaults": {
+        "prompt": "A Chicken wearing a fancy hat",
+        "negativePrompt": "",
+        "height": 768,
+        "width": 440,
+        "guidance": 1,
+        "steps": 8,
+        "noiseFactor": 0.005,
+        "numFrames": 16,
+        "numVideos": 1
+    },
+    "baseModel": "frankjoshua/realisticVisionV51_v51VAE",
+    "animateDiffSteps": 8,
+    "device": "cuda",
+    "port": 5000,
+    "outputDir": "./outputs"
+}

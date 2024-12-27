@@ -1,0 +1,189 @@
+body {
+    background-color: #1e1e2f;
+    color: #e0e0ff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+}
+
+.left-side {
+    width: 30%;
+    background-color: #2a2a3b;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    position: fixed;
+}
+
+.left-side > h2 {
+    position: fixed;
+    top: 60px;
+}
+
+.right-side {
+    margin-left: 30%;
+    padding: 20px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1, h2 {
+    color: #9d7ce0;
+}
+
+label {
+    display: block;
+}
+
+input, button {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: none;
+}
+
+button {
+    background-color: #9d7ce0;
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #7d5cb2;
+}
+
+#progress-container {
+    margin: 20px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #33334a;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background-color: #9d7ce0;
+    transition: width 0.2s ease;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+li {
+    margin: 5px 0;
+}
+
+a {
+    color: #9d7ce0;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#gif-list {
+    position: fixed;
+    top: 100px;
+}
+
+#gif-list li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background-color: #6200EA;
+    color: #EAE6FF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+    transition: background-color 0.3s ease;
+}
+
+#system{
+    position: fixed;
+    top: 90%;
+    width: 400px;
+}
+
+#imageDisplay{
+    position: fixed;
+    top: 80px;
+    max-height: 80%;
+}
+
+@media (max-width: 768px) {
+
+    .left-side > h2 {
+        position: relative;
+        top: 60px;
+    }
+
+    .wrapper {
+        flex-direction: column;
+    }
+
+    .left-side {
+        width: 100%;
+        position: relative;
+        height: auto;
+        margin-bottom: 20px;
+    }
+
+    .right-side {
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .back-btn {
+        position: relative;
+        top: auto;
+        left: auto;
+        font-size: 1em;
+    }
+
+    #gif-list {
+        position: relative;
+        top: auto;
+        left: auto;
+        margin-top: 100px;
+    }
+
+    #system {
+        position: relative;
+        width: 100%;
+    }
+
+    #imageDisplay {
+        position: relative;
+        top: auto;
+    }
+}

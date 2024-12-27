@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All GIFs</title>
+    <link rel="stylesheet" href="/static/allGifsStyle.css">
+</head>
+<body>
+
+    <button class="back-btn" onclick="window.location.href='/'">Back to Home</button>
+
+    <h1>All GIFs</h1>
+    <div id="gif-container" class="gif-grid">
+        {% for gif in gifs %}
+            <div class="gif-item">
+                <img src="gif/{{ gif }}" alt="{{ gif }}">
+            </div>
+        {% endfor %}
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <p>Loading more GIFs...</p>
+    </div>
+
+    <div id="custom-context-menu" class="context-menu">
+        <div class="context-menu-item" id="download-gif">Download GIF</div>
+        <div class="context-menu-item" id="download-mp4">Download MP4</div>
+        <div class="context-menu-item" id="create-looped">Create looped</div>
+        <div class="context-menu-item" id="download-looped">Download looped</div>
+    </div>
+
+    <script>
+        let startIndex = {{ start_index }};
+        let isLoading = false;
+
+        const gifContainer = document.getElementById('gif-container');
+
+        const contextMenu = document.getElementById('custom-context-menu');
+        let currentGifUrl = '';
+        let currentGifPath = '';
+
+        gifContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'IMG') {
+                const gifUrl = e.target.src;
+
+                // Replace .gif with .mp4 and set looped.mp4 as default
+                const mp4Url = gifUrl.replace('.gif', '.mp4');
+                const loopedMp4Url = gifUrl.split('/').slice(0, -1).join('/') + '/looped.mp4';
+
+                openFullscreen(gifUrl, mp4Url, loopedMp4Url);
+            }
+        });
+
+        document.addEventListener('contextmenu', (e) => {
+            const target = e.target;
+            if (target.tagName === 'IMG' && target.closest('.gif-item')) {
+                e.preventDefault();
+                currentGifUrl = target.src;
+                currentGifPath = target.alt;
+
+                contextMenu.style.top = `${e.pageY}px`;
+                contextMenu.style.left = `${e.pageX}px`;
+                contextMenu.style.display = 'block';
+            } else {
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('download-gif').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = currentGifUrl;
+            link.download = currentGifUrl.split('/').pop();
+            link.click();
+        });
+
+        document.getElementById('download-mp4').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = currentGifUrl.replace('.gif', '.mp4');
+            link.download = currentGifUrl.split('/').pop().replace('.gif', '.mp4');
+            link.click();
+        });
+
+        document.getElementById('download-looped').addEventListener('click', () => {
+            const link = document.createElement('a');
+            
+            let urlSplit = currentGifUrl.split("/")
+            urlSplit[urlSplit.length-1] = "looped.mp4"
+            url = urlSplit.join("/")
+            console.log(url)
+
+            link.href = url
+            link.download = "looped.mp4"
+            link.click();
+        });
+
+        document.getElementById('create-looped').addEventListener('click', async () => {
+            const response = await fetch(`/createlooped?path=${currentGifPath}`);
+
+            if (response.ok) {
+                alert('looped post created successfully!');
+            } else {
+                alert('Failed to create looped post.');
+            }
+        });
+
+        function openFullscreen(gifUrl, mp4Url, loopedMp4Url) {
+            const fullscreenDiv = document.createElement('div');
+            fullscreenDiv.classList.add('fullscreen');
+
+            const gifItem = createMediaItem('GIF', gifUrl, 'img');
+            const mp4Item = createMediaItem('MP4', mp4Url, 'video');
+            const loopedItem = createMediaItem('looped', loopedMp4Url, 'video', true);
+
+            const closeButton = document.createElement('button');
+            closeButton.classList.add('close-btn');
+            closeButton.innerText = 'Close';
+            closeButton.onclick = () => document.body.removeChild(fullscreenDiv);
+
+            fullscreenDiv.appendChild(gifItem);
+            fullscreenDiv.appendChild(mp4Item);
+            fullscreenDiv.appendChild(loopedItem);
+            fullscreenDiv.appendChild(closeButton);
+
+            document.body.appendChild(fullscreenDiv);
+        }
+
+        function createMediaItem(titleText, src, type, hideOnError = false) {
+            const mediaItem = document.createElement('div');
+            mediaItem.classList.add('media-item');
+
+            const title = document.createElement('div');
+            title.classList.add('media-title');
+            title.innerText = titleText;
+
+            let media;
+            if (type === 'img') {
+                media = document.createElement('img');
+                media.src = src;
+            } else if (type === 'video') {
+                media = document.createElement('video');
+                media.src = src;
+                media.controls = true;
+                media.autoplay = true;
+                if (hideOnError) {
+                    media.onerror = () => {
+                        mediaItem.style.display = 'none';
+                    };
+                }
+            }
+
+            mediaItem.appendChild(title);
+            mediaItem.appendChild(media);
+            return mediaItem;
+        }
+
+
+        const loadMoreGifs = async () => {
+            if (isLoading) return;
+
+            isLoading = true;
+            document.getElementById('loading').style.display = 'block';
+
+            const response = await fetch(`/more_gifs?start=${startIndex}`);
+            const data = await response.json();
+
+            if (data.gifs.length > 0) {
+                data.gifs.forEach(gif => {
+                    const gifItem = document.createElement('div');
+                    gifItem.classList.add('gif-item');
+
+                    const img = document.createElement('img');
+                    img.src = `/gif/${gif}`;
+                    img.alt = gif;
+
+                    gifItem.appendChild(img);
+                    gifContainer.appendChild(gifItem);
+                });
+
+                startIndex += data.gifs.length;
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            isLoading = false;
+        };
+
+        window.onscroll = () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                loadMoreGifs();
+            }
+        };
+
+        loadMoreGifs();
+    </script>
+
+</body>
+</html>

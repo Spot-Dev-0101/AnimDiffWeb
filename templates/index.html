@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimateDiff Web App</title>
+    <link rel="stylesheet" href="/static/indexStyle.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="left-side">
+            <button class="back-btn" onclick="window.location.href='/all'">View All Gifs</button>
+
+            <div id="system">
+
+                <div id="progress-container">
+                    <p class="progress-text" id="progress-text-gpu">GPU VRAM: 0%</p>
+                    <div class="progress-bar" id="progress-bar-gpu">
+                        <div class="progress-fill" id="progress-fill-gpu"></div>
+                    </div>
+                </div>
+
+                
+            </div>
+
+            
+
+            <h2>Previously Created GIFs</h2>
+            <ul id="gif-list">
+                {% for folder in folders %}
+                    <li><a href="#" onclick="showGif('{{ folder }}')">{{ folder }}</a></li>
+                {% endfor %}
+            </ul>
+
+            <img onclick="hideImage()" id="imageDisplay" src="">
+            
+        </div>
+
+        <div class="right-side">
+            <div class="container">
+                <h1>AnimateDiff Web App</h1>
+                <form id="generate-form">
+                    <label>Prompt: <textarea type="text" id="prompt" name="prompt" rows="4" cols="50">{{ last_prompt }}</textarea></label><br>
+                    <label>Negative Prompt: <textarea type="text" id="negative_prompt" name="negative_prompt" rows="4" cols="50">{{ last_negative_prompt }}</textarea></label><br>
+                    <label>Height: <input type="number" id="height" name="height" value="{{ last_height }}"></label><br>
+                    <label>Width: <input type="number" id="width" name="width" value="{{ last_width }}"></label><br>
+                    <label>Guidance Scale: <input type="float" step="0.1" id="guidance_scale" name="guidance_scale" value="{{ last_guidance }}"></label><br>
+                    <label>Steps: <input type="number" id="steps" name="steps" value="{{ last_steps }}"></label><br>
+                    <label>Noise: <input type="float" id="noise_factor" name="noise_factor" value="{{ last_noise_factor }}"></label><br>
+                    <label>Frames: <input type="number" id="num_frames" name="num_frames" value="{{ last_num_frames }}"></label><br>
+                    <label>Number of Videos: <input type="number" id="num_videos" name="num_videos" value="{{ last_num_videos }}"></label><br>
+                    <button type="submit">Generate</button>
+                </form>
+
+                <img id="imageDisplay" src="">
+
+                <div id="progress-container">
+                    <p class="progress-text" id="progress-text">Progress: 0%</p>
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const form = document.getElementById('generate-form');
+        const progressText = document.getElementById('progress-text');
+        const progressFill = document.getElementById('progress-fill');
+        const gifList = document.getElementById('gif-list');
+        const imageDisplay = document.getElementById('imageDisplay');
+
+        const progressTextGPU = document.getElementById('progress-text-gpu');
+        const progressFillGPU = document.getElementById('progress-fill-gpu');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => (data[key] = value));
+
+            fetch('/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            })
+            .then((res) => res.json())
+            .then((res) => {
+                //alert('Generation started!');
+            });
+        });
+
+        socket.on('system_usage', (data) => {
+            console.log('System Usage:', data);
+            console.log(data)
+            let vram_usage = (data.vram_usage / data.total_vram) * 100
+            progressTextGPU.textContent = `GPU VRAM: ${vram_usage}%`;
+            progressFillGPU.style.width = `${vram_usage}%`;
+        });
+
+        socket.on('progress', (data) => {
+            progressText.textContent = `Progress: ${data.percent}%`;
+            progressFill.style.width = `${data.percent}%`;
+
+            document.title = `Progress: ${data.percent}%`;
+
+            if (data.percent === 100) {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<a href="#" onclick="showGif('${data.folder}')">${data.folder}</a>`;
+                gifList.insertBefore(listItem, gifList.firstChild);
+                showGif(data.folder);
+
+            } else {
+                imageDisplay.src = "data:image/png;base64, " + data.image;
+            }
+        });
+
+        function hideImage() {
+            imageDisplay.src = "";
+        }
+
+        function showGif(folder) {
+            console.log(folder.replace(".", ""));
+            fetch(`/gif/${folder}`)
+                .then((res) => res.blob())
+                .then((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    imageDisplay.src = url;
+                });
+        }
+    </script>
+</body>
+</html>
