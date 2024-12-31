@@ -356,6 +356,7 @@ def create_reversed_loop(input_path):
         os.remove(concat_list_path)
 
         print(f"Saved reversed loop video to {output_path}")
+        print(input_path)
 
     except subprocess.CalledProcessError as e:
         print(f"FFmpeg error: {e}")

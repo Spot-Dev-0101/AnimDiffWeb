@@ -99,6 +99,9 @@
         });
 
         document.getElementById('create-looped').addEventListener('click', async () => {
+            if(currentGifPath.charAt(0) == "/"){
+                currentGifPath = currentGifPath.substring(1)
+            }
             const response = await fetch(`/createlooped?path=${currentGifPath}`);
 
             if (response.ok) {
